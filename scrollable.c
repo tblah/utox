@@ -114,7 +114,7 @@ _Bool scroll_mwheel(SCROLLABLE *s, int height, double d)
             uint32_t m = (h * h) / c;
             double dd = (h - m);
 
-            s->d -= 16.0 * d / dd;;
+            s->d -= 8.0 * d / dd;;
 
             if(s->d < 0.0)
             {
