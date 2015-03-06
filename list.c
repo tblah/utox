@@ -1,4 +1,8 @@
 #include "main.h"
+#ifdef UNITY
+#include "xlib/mmenu.h"
+extern _Bool unity_running;
+#endif
 
 static ITEM item_add, item_settings, item_transfer;
 static ITEM item[1024], *mitem, *nitem;
@@ -9,32 +13,30 @@ static _Bool sitem_mousedown;
 
 static int sitem_dy;
 
-static void drawitembox(ITEM *i, int target, int y)
-{
+static void drawitembox(ITEM *i, int target, int y){
     if(sitem == i) {
         drawpixel(LIST_X, y, LIST_EDGE6);
         drawhline_common(target, LIST_X + 1, y, LIST_RIGHT, LIST_EDGE7);
         drawpixel(LIST_RIGHT, y, LIST_EDGE5);
         drawvline_common(target, LIST_X, y + 1, y + ITEM_HEIGHT, LIST_EDGE4);
-        drawrect_common(target, LIST_X + 1, y + 1, LIST_RIGHT + 1, y + ITEM_HEIGHT, LIST_SELECTED);
+        drawrect_common(target, LIST_X + 1, y + 1, LIST_RIGHT + 1, y + ITEM_HEIGHT, COLOR_MAIN_BACKGROUND);
 
         //drawrectw_common(target, LIST_X + 5 * SCALE / 2, y + 5 * SCALE / 2, 40, 40, LIST_MAIN);
     } else if(mitem == i) {
-        drawrect_common(target, LIST_X + 1, y + 1, LIST_RIGHT, y + ITEM_HEIGHT, LIST_HIGHLIGHT);
+        drawrect_common(target, LIST_X + 1, y + 1, LIST_RIGHT, y + ITEM_HEIGHT, COLOR_LIST_HOVER_BACKGROUND);
     }
 }
 
-static void drawname(ITEM *i, int target, int y, char_t *name, char_t *msg, STRING_IDX name_length, STRING_IDX msg_length, _Bool color_overide, uint32_t color)
-{
+static void drawname(ITEM *i, int target, int y, char_t *name, char_t *msg, STRING_IDX name_length, STRING_IDX msg_length, _Bool color_overide, uint32_t color){
     if (!color_overide)
-        color = (sitem == i) ? LIST_DARK : LIST_SELECTED;
+        color = (sitem == i) ? COLOR_MAIN_TEXT : COLOR_LIST_TEXT;
 
     setcolor_common(target, color);
     setfont_common(target, FONT_LIST_NAME);
     drawtextwidth_common(target, LIST_NAME_X, LIST_RIGHT - LIST_NAME_X - SCALE * 16, y + LIST_NAME_Y, name, name_length);
 
     if (!color_overide)
-        color = (sitem == i) ? LIST_MAIN : C_STATUS;
+        color = (sitem == i) ? COLOR_MAIN_SUBTEXT : COLOR_LIST_SUBTEXT;
 
     setcolor_common(target, color);
     setfont_common(target, FONT_STATUS);
@@ -53,7 +55,7 @@ static void drawitem(ITEM *i, int target, int UNUSED(x), int y)
             // TODO convert to accept target
             draw_avatar_image(f->avatar.image, LIST_AVATAR_X, y + LIST_AVATAR_Y, f->avatar.width, f->avatar.height, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH);
         } else {
-            drawalpha_common(target, BM_CONTACT, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? LIST_MAIN : WHITE);
+            drawalpha_common(target, BM_CONTACT, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? COLOR_LIST_BACKGROUND : COLOR_MAIN_BACKGROUND);
         }
 
         drawname(i, target, y, f->name, f->status_message, f->name_length, f->status_length, 0, 0);
@@ -69,13 +71,13 @@ static void drawitem(ITEM *i, int target, int UNUSED(x), int y)
 
     case ITEM_GROUP: {
         GROUPCHAT *g = i->data;
-        drawalpha_common(target, BM_GROUP, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? LIST_MAIN : WHITE);
+        drawalpha_common(target, BM_GROUP, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? COLOR_LIST_BACKGROUND : COLOR_MAIN_BACKGROUND );
         _Bool color_overide = 0;
         uint32_t color = 0;
 
         if (g->muted) {
             color_overide = 1;
-            color = C_BLUE;
+            color = COLOR_GROUP_UNUSUAL;
         } else {
             uint64_t time = get_time();
             unsigned int j;
@@ -98,7 +100,7 @@ static void drawitem(ITEM *i, int target, int UNUSED(x), int y)
         char_t name[TOX_FRIEND_ADDRESS_SIZE * 2];
         id_to_string(name, f->id);
 
-        drawalpha_common(target, BM_CONTACT, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? LIST_MAIN : WHITE);
+        drawalpha_common(target, BM_CONTACT, LIST_AVATAR_X, y + LIST_AVATAR_Y, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, (sitem == i) ? COLOR_LIST_BACKGROUND : COLOR_MAIN_BACKGROUND);
         drawname(i, target, y, name, f->msg, sizeof(name), f->length, 0, 0);
         break;
     }
@@ -194,6 +196,12 @@ static void selectitem(ITEM *i)
 
     if(i->item == ITEM_FRIEND) {
         FRIEND *f = i->data;
+
+        #ifdef UNITY
+        if(unity_running) {
+            mm_rm_entry(f->cid);
+        }
+        #endif
 
         memcpy(edit_msg.data, f->typed, f->typed_length);
         edit_msg.length = f->typed_length;
@@ -342,9 +350,6 @@ void list_draw_common(void *UNUSED(n), int target, int UNUSED(x), int y, int UNU
             if(i == sitem && (sitem_dy >= 5 || sitem_dy <= -5)) {
                 mi = i;
                 my = y + sitem_dy;
-
-                //RECT r = {LIST_X, y, LIST_X + ITEM_WIDTH, y + ITEM_HEIGHT};
-                //fillrect(&r, WHITE);
             } else {
                 drawitem(i, target, LIST_X, y);
             }

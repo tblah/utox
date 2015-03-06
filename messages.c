@@ -44,55 +44,60 @@ static void draw_message_image(UTOX_NATIVE_IMAGE *image, int x, int y, uint32_t 
  * accepts: messages struct *pointer, int x,y positions, int width,height
  */
 void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int height){
-    setcolor_common(target, 0);
-    setfont_common(target, FONT_TEXT);
-
+    // Don't not draw author next to name every message
     uint8_t lastauthor = 0xFF;
 
+    // Message iterator
     void **p = m->data->data;
     MSG_IDX i, n = m->data->n;
 
+    // Go throught messages
     for(i = 0; i != n; i++) {
         MESSAGE *msg = *p++;
 
+        // Empty message
         if(msg->height == 0) {
             return;
         }
 
-        if(y + msg->height <= 0) { //! NOTE: should not be constant 0
+        //! NOTE: should not be constant 0
+        if(y + msg->height <= 0) {
             y += msg->height;
             continue;
         }
 
-        if(y >= height + 50 * SCALE) { //! NOTE: should not be constant 100
+        //! NOTE: should not be constant 100
+        if(y >= height + 50 * SCALE) {
             break;
         }
-
-        setcolor_common(target, LIST_MAIN);
+        setcolor_common(target, COLOR_MAIN_SUBTEXT);
         setfont_common(target, FONT_MISC);
 
-        {
-            char timestr[6];
-            STRING_IDX len;
-            len = snprintf(timestr, sizeof(timestr), "%u:%.2u", msg->time / 60, msg->time % 60);
-            drawtext_common(target, x + width - TIME_WIDTH, y, (char_t*)timestr, len);
-        }
+        // Draw timestamps
+        char timestr[6];
+        STRING_IDX len;
+        len = snprintf(timestr, sizeof(timestr), "%u:%.2u", msg->time / 60, msg->time % 60);
+        drawtext_common(target, x + width - TIME_WIDTH, y, (char_t*)timestr, len);
 
         // Draw the names for groups or friends
         if(m->type) {
-            /* group */
-            setcolor_common(target, C_BLUE);
+
+            // Group message authors are all the same colour
+            setcolor_common(target, COLOR_MAIN_TEXT);
             setfont_common(target, FONT_TEXT);
             drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, &msg->msg[msg->length] + 1, msg->msg[msg->length]);
         } else {
             FRIEND *f = &friend[m->data->id];
+            // Always draw name next to action message
             if(msg->author != lastauthor) {
+                // Draw author name
+                // If author is current user
                 setfont_common(target, FONT_TEXT);
                 if(!msg->author) {
-                    setcolor_common(target, 0);
+                    setcolor_common(target, COLOR_MAIN_SUBTEXT);
                     drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
                 } else {
-                    setcolor_common(target, CHAT_SELF);
+                    setcolor_common(target, COLOR_MAIN_TEXT);
                     drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, self.name, self.name_length);
                 }
                 lastauthor = msg->author;
@@ -104,12 +109,12 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
                 }
             }
         }
-        /**/
 
+        // Draw message contents
         switch(msg->msg_type) {
         case MSG_TYPE_TEXT:
         case MSG_TYPE_ACTION_TEXT: {
-            /* normal message */
+            // Normal message
             STRING_IDX h1 = STRING_IDX_MAX, h2 = STRING_IDX_MAX;
             if(i == m->data->istart) {
                 h1 = m->data->start;
@@ -128,12 +133,17 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
             }
 
             if (msg->msg_type == MSG_TYPE_ACTION_TEXT) {
-                setcolor_common(target, C_BLUE);
+                setcolor_common(target, COLOR_MAIN_ACTIONTEXT);
             } else {
                 setcolor_common(target, 0);
             }
 
             setfont_common(target, FONT_TEXT);
+            if(msg->author) {
+                setcolor_common(target, COLOR_MAIN_SUBTEXT);
+            } else {
+                setcolor_commen(target, COLOR_MAIN_TEXT);
+            }
             int ny = drawtextmultiline(x + MESSAGES_X, x + width - TIME_WIDTH, y, y, y + msg->height, font_small_lineheight, msg->msg, msg->length, h1, h2 - h1, 1);
             if(ny < y || (uint32_t)(ny - y) + MESSAGES_SPACING != msg->height) {
                 debug("Error while drawing messages ::  %u %u\n", ny -y, msg->height - MESSAGES_SPACING);
@@ -143,8 +153,8 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
             break;
         }
 
+        // Draw image
         case MSG_TYPE_IMAGE: {
-            /* image */
             MSG_IMG *img = (void*)msg;
             int maxwidth = width - MESSAGES_X - TIME_WIDTH;
             draw_message_image(img->image, x + MESSAGES_X, y, img->w, img->h, maxwidth, img->zoom, img->position);
@@ -152,6 +162,7 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
             break;
         }
 
+        // Draw file transfer
         case MSG_TYPE_FILE: {
             MSG_FILE *file = (void*)msg;
             int dx = MESSAGES_X;
@@ -161,38 +172,38 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
             char_t size[16];
             STRING_IDX sizelen = sprint_bytes(size, sizeof(size), file->size);
 
-            setcolor_common(target, WHITE);
             setfont_common(target, FONT_MISC);
+            setcolor_common(target, COLOR_MAIN_BACKGROUND);
 
             if(file->status == FILE_DONE) {
-                drawalpha_common(target, BM_FT, xx, y, BM_FT_WIDTH, BM_FT_HEIGHT, (mo && m->over) ? C_GREEN_LIGHT : C_GREEN);
-                drawalpha_common(target, BM_YES, xx + BM_FTM_WIDTH + SCALE + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, WHITE);
+                drawalpha_common(target, BM_FT, xx, y, BM_FT_WIDTH, BM_FT_HEIGHT, (mo && m->over) ? COLOR_BUTTON_SUCCESS_HOVER_BACKGROUND : COLOR_BUTTON_SUCCESS_BACKGROUND);
+                drawalpha_common(target, BM_YES, xx + BM_FTM_WIDTH + SCALE + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, COLOR_MAIN_BACKGROUND);
                 if(file->inline_png) {
                     drawstr(xx + 5 * SCALE, y + 17 * SCALE, CLICKTOSAVE);
                 } else {
                     drawstr(xx + 5 * SCALE, y + 17 * SCALE, CLICKTOOPEN);
                 }
             } else if(file->status == FILE_KILLED) {
-                drawalpha_common(target, BM_FT, xx, y, BM_FT_WIDTH, BM_FT_HEIGHT, C_RED);
-                drawalpha_common(target, BM_NO, xx + BM_FTM_WIDTH + SCALE + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, WHITE);
+                drawalpha_common(target, BM_FT, xx, y, BM_FT_WIDTH, BM_FT_HEIGHT, COLOR_BUTTON_DANGER_BACKGROUND);
+                drawalpha_common(target, BM_NO, xx + BM_FTM_WIDTH + SCALE + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, COLOR_MAIN_BACKGROUND);
                 drawstr(xx + 5 * SCALE, y + 17 * SCALE, CANCELLED);
             } else {
                 if(file->status == FILE_BROKEN) {
-                    drawalpha_common(target, BM_FTM, xx, y, BM_FTM_WIDTH, BM_FT_HEIGHT, C_RED);
+                    drawalpha_common(target, BM_FTM, xx, y, BM_FTM_WIDTH, BM_FT_HEIGHT, COLOR_BUTTON_DANGER_BACKGROUND);
                 } else if(file->status == FILE_OK) {
-                    drawalpha_common(target, BM_FTM, xx, y, BM_FTM_WIDTH, BM_FT_HEIGHT, BLUE);
+                    drawalpha_common(target, BM_FTM, xx, y, BM_FTM_WIDTH, BM_FT_HEIGHT, COLOR_MAIN_URLTEXT);
                 } else {
                     drawalpha_common(target, BM_FTM, xx, y, BM_FTM_WIDTH, BM_FT_HEIGHT, C_GRAY);
-                    setcolor_common(target, GRAY(98));
+                    setcolor_common(target, COLOR_MAIN_TEXT);
                 }
 
                 int xxx = xx + BM_FTM_WIDTH + SCALE;
-                drawalpha_common(target, BM_FTB1, xxx, y, BM_FTB_WIDTH, BM_FTB_HEIGHT + SCALE, (mo && m->over == 1) ? C_GREEN_LIGHT : C_GREEN);
-                drawalpha_common(target, BM_NO, xxx + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, WHITE);
+                drawalpha_common(target, BM_FTB1, xxx, y, BM_FTB_WIDTH, BM_FTB_HEIGHT + SCALE, (mo && m->over == 1) ? COLOR_BUTTON_SUCCESS_HOVER_BACKGROUND : COLOR_BUTTON_SUCCESS_BACKGROUND);
+                drawalpha_common(target, BM_NO, xxx + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + SCALE * 4, BM_FB_WIDTH, BM_FB_HEIGHT, COLOR_MAIN_BACKGROUND);
 
-                uint32_t color = ((msg->author && file->status == FILE_PENDING) || file->status == FILE_BROKEN || file->status == FILE_PAUSED_OTHER) ? C_GRAY: ((mo && m->over == 2) ? C_GREEN_LIGHT : C_GREEN);
+                uint32_t color = ((msg->author && file->status == FILE_PENDING) || file->status == FILE_BROKEN || file->status == FILE_PAUSED_OTHER) ? C_GRAY: ((mo && m->over == 2) ? COLOR_BUTTON_SUCCESS_HOVER_BACKGROUND : COLOR_BUTTON_SUCCESS_BACKGROUND);
                 drawalpha_common(target, BM_FTB2, xxx, y + BM_FTB_HEIGHT + SCALE * 2, BM_FTB_WIDTH, BM_FTB_HEIGHT, color);
-                drawalpha_common(target, (!msg->author && file->status ==  FILE_PENDING) ? BM_YES : (file->status == FILE_PAUSED ? BM_RESUME : BM_PAUSE), xxx + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + BM_FTB_HEIGHT + SCALE * 5, BM_FB_WIDTH, BM_FB_HEIGHT, color == C_GRAY ? LIST_MAIN : WHITE);
+                drawalpha_common(target, (!msg->author && file->status ==  FILE_PENDING) ? BM_YES : (file->status == FILE_PAUSED ? BM_RESUME : BM_PAUSE), xxx + (BM_FTB_WIDTH - BM_FB_WIDTH) / 2, y + BM_FTB_HEIGHT + SCALE * 5, BM_FB_WIDTH, BM_FB_HEIGHT, color == C_GRAY ? COLOR_LIST_BACKGROUND : COLOR_MAIN_BACKGROUND);
 
 
                 uint64_t progress = file->progress;
@@ -202,7 +213,7 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
 
                 uint32_t w = (file->size == 0) ? 0 : (progress * (uint64_t)106 * SCALE) / file->size;
 
-                color = (file->status == FILE_PENDING || file->status == FILE_PAUSED || file->status == FILE_PAUSED_OTHER) ? LIST_MAIN : WHITE;
+                color = (file->status == FILE_PENDING || file->status == FILE_PAUSED || file->status == FILE_PAUSED_OTHER) ? COLOR_LIST_BACKGROUND : COLOR_MAIN_BACKGROUND;
                 framerect_common(target, xx + 5 * SCALE, y + 17 * SCALE, xx + 111 * SCALE, y + 24 * SCALE, color);
                 drawrectw_common(target, xx + 5 * SCALE, y + 17 * SCALE, w, 7 * SCALE, color);
 
@@ -245,7 +256,7 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
         FRIEND *f = get_typers(m);
         if(f) {
             setfont_common(target, FONT_TEXT);
-            setcolor_common(target, C_GRAY2);
+            setcolor_common(target, COLOR_MAIN_TEXT);
             drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
             drawtextwidth_common(target, x + MESSAGES_X, x + width, y, S(IS_TYPING), SLEN(IS_TYPING));
         }

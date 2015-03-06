@@ -35,12 +35,12 @@ void edit_draw_common(EDIT *edit, int target, int x, int y, int width, int heigh
     edit->height = height - 4 * SCALE;
 
     if(!edit->noborder) {
-        framerect_common(target, x, y, x + width, y + height, (edit == active_edit) ? BLUE : (edit->mouseover ? C_GRAY2 : C_GRAY));
+        framerect_common(target, x, y, x + width, y + height, (edit == active_edit) ? BLUE : (edit->mouseover ? COLOR_EDGE_HOVER : COLOR_EDGE_NORMAL));
     }
-    drawrect_common(target, x + 1, y + 1, x + width - 1, y + height - 1, WHITE);
+    drawrect_common(target, x + 1, y + 1, x + width - 1, y + height - 1, COLOR_MAIN_BACKGROUND);
 
     setfont_common(target, FONT_TEXT);
-    setcolor_common(target, COLOR_TEXT);
+    setcolor_common(target, COLOR_MAIN_TEXT);
 
     int yy = y;
 
@@ -53,10 +53,10 @@ void edit_draw_common(EDIT *edit, int target, int x, int y, int width, int heigh
         yy -= scroll_gety(scroll, height);
     }
 
-
+    // TODO: what is this for?
     if(!edit->length && maybe_i18nal_string_is_valid(&edit->empty_str)) {
         STRING* empty_str_text = maybe_i18nal_string_get(&edit->empty_str);
-        setcolor_common(target, C_GRAY2);
+        setcolor_common(target, COLOR_MAIN_TEXT);
         drawtext_common(target, x + 2 * SCALE, yy + 2 * SCALE, empty_str_text->str, empty_str_text->length);
     }
 
@@ -347,11 +347,9 @@ static STRING_IDX edit_redo(EDIT *edit)
 #define updatesel() if(edit_sel.p1 <= edit_sel.p2) {edit_sel.start = edit_sel.p1; edit_sel.length = edit_sel.p2 - edit_sel.p1;} \
                     else {edit_sel.start = edit_sel.p2; edit_sel.length = edit_sel.p1 - edit_sel.p2;}
 
-/* shift: flags & 1
- * control: flags & 4
-*/
-void edit_char(uint32_t ch, _Bool control, uint8_t flags)
-{
+void edit_char(uint32_t ch, _Bool control, uint8_t flags){
+    /* shift: flags & 1
+     * control: flags & 4 */
     EDIT *edit = active_edit;
 
     if(control || (ch <= 0x1F && (!edit->multiline || ch != '\n')) || (ch >= 0x7f && ch <= 0x9F)) {
@@ -592,7 +590,7 @@ void edit_char(uint32_t ch, _Bool control, uint8_t flags)
         case KEY_RETURN: {
             modified = 1;
 
-            if(edit->onenter) {
+            if(edit->onenter && !(flags & 4)) {
                 edit->onenter(edit);
                 /*dirty*/
                 if(edit->length == 0) {

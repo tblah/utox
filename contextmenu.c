@@ -36,19 +36,22 @@ void contextmenu_draw_common(int target){
     setfont_common(target, FONT_TEXT);
     setcolor_common(target, COLOR_TEXT);
 
-    int x, w;
+    int x, w, active_h;
     calculate_pos_and_width(b, &x, &w);
 
-    drawrectw_common(target, x, b->y, w, b->height, WHITE);
-    drawrectw_common(target, x, b->y + b->over * CONTEXT_HEIGHT, w, CONTEXT_HEIGHT, C_GRAY);
+    drawrectw_common(target, x, b->y, w, b->height, COLOR_MAIN_BACKGROUND);
+    active_h = b->y + b->over * CONTEXT_HEIGHT;
+    drawrectw_common(target, x, active_h, CONTEXT_HEIGHT, COLOR_ACTIVEOPTION_BACKGROUND C_GRAY);
 
     int i;
     for(i = 0; i != b->count; i++) {
+        // Ensure that font is set before calculating position and width.
         STRING *name = b->ondisplay(i, b);
+        setcolor_common(target, (active_h == b->y + i * CONTEXT_HEIGHT) ? COLOR_ACTIVEOPTION_TEXT : COLOR_MAIN_TEXT);
         drawtext_common(target, x + SCALE * 2, b->y + SCALE * 2 + i * CONTEXT_HEIGHT, name->str, name->length);
     }
 
-    framerect_common(target, x, b->y, x + w, b->y + b->height, BLUE);
+    framerect_common(target, x, b->y, x + w, b->y + b->height, COLOR_EDGE_ACTIVE);
 }
 
 _Bool contextmenu_mmove(int mx, int my, int UNUSED(dx), int UNUSED(dy))
@@ -63,7 +66,7 @@ _Bool contextmenu_mmove(int mx, int my, int UNUSED(dx), int UNUSED(dy))
 
     // Ensure that font is set before calculating position and width.
     setfont_common(0, FONT_TEXT);
-    setcolor_common(0, COLOR_TEXT);
+    setcolor_common(0, COLOR_MAIN_BACKGROUND);
 
     int x, w;
     calculate_pos_and_width(b, &x, &w);

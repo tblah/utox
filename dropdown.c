@@ -5,6 +5,7 @@ static int active_x, active_y, active_width, active_height;
 
 #define index(b, i) (i == 0 ? b->selected : ((i > b->selected) ? i : i - 1))
 
+// Draw background recktangles for a dropdown
 void dropdown_drawactive_common(int target){
     DROPDOWN *b = active;
     if(!b) {
@@ -15,7 +16,6 @@ void dropdown_drawactive_common(int target){
 
     setfont_common(target, FONT_TEXT);
     setcolor_common(target, COLOR_TEXT);
-
     int i, sign = 1;
 
     // Increase width if needed, so that all menu items fit.
@@ -32,8 +32,8 @@ void dropdown_drawactive_common(int target){
         sign = -1;
     }
 
-    drawrect_common(target, x, y, x + w, y + h * b->dropcount, WHITE);
-    framerect_common(target, x, y, x + w, y + h * b->dropcount, BLUE);
+    drawrect_common(target, x, y, x + w, y + h * b->dropcount, COLOR_MAIN_BACKGROUND);
+    framerect_common(target, x, y, x + w, y + h * b->dropcount, COLOR_EDGE_ACTIVE);
 
     if(sign == -1) {
         y += h * (b->dropcount - 1);
@@ -43,22 +43,27 @@ void dropdown_drawactive_common(int target){
         int j = index(b, i);
         STRING* e = b->ondisplay(j, b);
         if(j == b->over) {
-            drawrectw_common(target, x + 1, y + 1, w - 2, h - 2, C_GRAY);
+            drawrectw_common(target, x + 1, y + 1, w - 2, h - 2, COLOR_ACTIVEOPTION_BACKGROUND);
+            setcolor(COLOR_ACTIVEOPTION_TEXT);
+        } else {
+            setcolor(COLOR_MAIN_TEXT);
         }
+        setfont_common(target, FONT_TEXT);
         drawtext_common(target, x + 2 * SCALE, y + 2 * SCALE, e->str, e->length);
 
         y += sign * h;
     }
 }
 
+// Draw collapsed dropdown
 void dropdown_draw_common(DROPDOWN *b, int target, int x, int y, int width, int height){
     if(!b->open) {
-        framerect_common(target, x, y, x + width, y + height, (b->mouseover ? C_GRAY2 : C_GRAY));
-        drawrect_common(target, x + 1, y + 1, x + width - 1, y + height - 1, WHITE);
+        framerect_common(target, x, y, x + width, y + height, (b->mouseover ? COLOR_EDGE_HOVER : COLOR_EDGE_NORMAL));
+        drawrect_common(target, x + 1, y + 1, x + width - 1, y + height - 1, COLOR_MAIN_BACKGROUND);
 
         if(b->dropcount) {
             setfont_common(target, FONT_TEXT);
-            setcolor_common(target, COLOR_TEXT);
+            setcolor_common(target, COLOR_MAIN_TEXT);
             STRING* e = b->ondisplay(b->selected, b);
             drawtextwidth_common(target, x + 2 * SCALE, width - 4 * SCALE, y + 2 * SCALE, e->str, e->length);
         }

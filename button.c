@@ -26,27 +26,28 @@ static void calculate_pos_and_width(BUTTON *b, int *x, int *w) {
 * and draws it all pretty like
 */
 void button_draw_common(BUTTON *b, int target, int x, int y, int width, int height){
+    // Button is hidden
     if(b->nodraw) {
         return;
-    }
 
-    if(b->updatecolor) {
+    // If `updatecolor` function is defined, call it on each draw
+    if (b->updatecolor)
         b->updatecolor(b);
-    }
 
     // Ensure that font is set before calculating position and width.
     setfont_common(target, FONT_SELF_NAME);
-    setcolor_common(target, WHITE);
+    uint32_t color_text = b->mousedown ? b->ct2 : (b->mouseover ? b->ct2 : b->ct1);
+    setcolor_common(target, color_text);
 
     int w = width;
     calculate_pos_and_width(b, &x, &w);
 
     //change color by mouse location
-    uint32_t color = b->mousedown ? b->c3 : (b->mouseover ? b->c2 : b->c1);
+    uint32_t color_background = b->mousedown ? b->c3 : (b->mouseover ? b->c2 : b->c1);
     if(b->bm) {
-        drawalpha_common(target, b->bm, x, y, width, height, color);
+        drawalpha_common(target, b->bm, x, y, width, height, color_background);
     } else {
-        drawrectw_common(target, x, y, w, height, b->disabled ? LIST_MAIN : color);
+        drawrectw_common(target, x, y, w, height, b->disabled ? LIST_MAIN : color_background);
 
         //setfont_common(0, FONT_TEXT_LARGE);
         //setcolor_common(0, b->mouseover ? 0x222222 : 0x555555);
@@ -55,7 +56,7 @@ void button_draw_common(BUTTON *b, int target, int x, int y, int width, int heig
 
     if(b->bm2) {
         int bx = w / 2 - b->bw * SCALE / 2, by = height / 2 - b->bh * SCALE / 2;
-        drawalpha_common(target, b->bm2, x + bx, y + by, b->bw * SCALE, b->bh * SCALE, WHITE);
+        drawalpha_common(target, b->bm2, x + bx, y + by, b->bw * SCALE, b->bh * SCALE, color_text);
     }
 
     // If needed, write text over the button
@@ -65,7 +66,7 @@ void button_draw_common(BUTTON *b, int target, int x, int y, int width, int heig
                 // The text didn't fit into the original width.
                 // Fill the rest of the new width with the image
                 // and hope for the best.
-                drawalpha_common(target, b->bm, x - width + w, y, width, height, color);
+                drawalpha_common(target, b->bm, x - width + w, y, width, height, color_background);
                 w -= width / 2 + 1;
             }
         }

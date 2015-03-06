@@ -3,6 +3,7 @@
 DBUS = 1
 V4LCONVERT = 1
 FILTER_AUDIO = 1
+UNITY = 0
 
 DEPS = fontconfig freetype2 libtoxav libtoxcore
 DEPS += openal vpx x11 xext xrender
@@ -17,6 +18,10 @@ endif
 
 ifeq ($(FILTER_AUDIO), 1)
 	DEPS += filteraudio
+endif
+
+ifeq ($(UNITY), 1)
+	DEPS += messaging-menu unity
 endif
 
 UNAME_S := $(shell uname -s)
@@ -36,6 +41,10 @@ endif
 
 ifeq ($(FILTER_AUDIO), 1)
 	CFLAGS += -DAUDIO_FILTERING
+endif
+
+ifeq ($(UNITY), 1)
+	CFLAGS += -DUNITY
 endif
 
 ifeq ($(UNAME_S), Linux)
@@ -91,6 +100,9 @@ install: utox
 
 	mkdir -p $(DESTDIR)$(PREFIX)/share/applications
 	install -m 644 utox.desktop $(DESTDIR)$(PREFIX)/share/applications/utox.desktop
+	
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man1
+	install -m 644 utox.1 $(DESTDIR)$(PREFIX)/share/man/man1/utox.1
 
 main.o: xlib/main.c xlib/keysym2ucs.c
 

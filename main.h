@@ -101,6 +101,7 @@ typedef struct edit_change EDIT_CHANGE;
 
 #include "avatar.h"
 #include "messages.h"
+#include "theme.h"
 #include "dns.h"
 #include "transfer.h"
 #include "friend.h"
@@ -233,10 +234,10 @@ enum
 void drawalpha_common(int target, int bm, int x, int y, int width, int height, uint32_t color);
 void loadalpha(int bm, void *data, int width, int height);
 void desktopgrab(_Bool video);
-void notify(char_t *title, STRING_IDX title_length, char_t *msg, STRING_IDX msg_length, uint8_t *cid);
 void incoming_call(void);
 void incoming_call_hide(void);
 void setscale(int target);
+void notify(char_t *title, STRING_IDX title_length, char_t *msg, STRING_IDX msg_length, FRIEND *f);
 
 enum {
     FILTER_NEAREST, // ugly and quick filtering

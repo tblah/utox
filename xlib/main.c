@@ -23,9 +23,7 @@
 
 #include <pthread.h>
 #include <unistd.h>
-
 #include <locale.h>
-
 #include <dlfcn.h>
 
 #include "audio.c"
@@ -45,6 +43,12 @@
 
 #define DEFAULT_WIDTH (382 * DEFAULT_SCALE)
 #define DEFAULT_HEIGHT (320 * DEFAULT_SCALE)
+
+#ifdef UNITY
+#include <messaging-menu/messaging-menu.h>
+#include <unity.h>
+#include "mmenu.c"
+#endif
 
 Display *display;
 int screen;
@@ -87,6 +91,7 @@ uint16_t drawwidth, drawheight;
 XIC xic = NULL;
 
 XImage *screen_image;
+
 
 /* pointers to dynamically loaded libs */
 void *libgtk;
@@ -785,7 +790,7 @@ void setscale(int target){
     }
 }
 
-void notify(char_t *title, STRING_IDX title_length, char_t *msg, STRING_IDX msg_length, uint8_t *cid)
+void notify(char_t *title, STRING_IDX title_length, char_t *msg, STRING_IDX msg_length, FRIEND *f)
 {
     if(havefocus) {
         return;
@@ -797,9 +802,20 @@ void notify(char_t *title, STRING_IDX title_length, char_t *msg, STRING_IDX msg_
     #ifdef HAVE_DBUS
     char_t *str = tohtml(msg, msg_length);
 
-    dbus_notify((char*)title, (char*)str, (uint8_t*)cid);
+    uint8_t *f_cid = NULL;
+    if(friend_has_avatar(f)) {
+        f_cid = f->cid;
+    }
+
+    dbus_notify((char*)title, (char*)str, (uint8_t*)f_cid);
 
     free(str);
+    #endif
+
+    #ifdef UNITY
+    if(unity_running) {
+        mm_notify(f->name, f->cid);
+    }
     #endif
 }
 
@@ -882,19 +898,57 @@ static int systemlang(void)
     return ui_guess_lang_by_posix_locale(str, DEFAULT_LANG);
 }
 
+_Bool parse_args_wait_for_theme;
+
 int main(int argc, char *argv[])
 {
-    if(argc == 2 && argv[1]) {
-        if(!strcmp(argv[1], "--version")) {
-            debug("%s\n", VERSION);
-            return 0;
-        } else if(!strcmp(argv[1], "--portable")) {
-            debug("Launching uTox in portable mode: All data will be saved to the tox folder in the current working directory\n");
-            utox_portable = 1;
-        } else {
-            debug("Valid arguments are: --version and --portable (launches uTox in portable mode)\n");
-            return 0;
+    parse_args_wait_for_theme = 0;
+    theme = THEME_DEFAULT;
+    
+    if (argc > 1)
+        for (int i = 1; i < argc; i++) {
+            if (parse_args_wait_for_theme) {
+                if(!strcmp(argv[i], "default")) {
+                    theme = THEME_DEFAULT;
+                    parse_args_wait_for_theme = 0;
+                    continue;
+                }
+                if(!strcmp(argv[i], "dark")) {
+                    theme = THEME_DARK;
+                    parse_args_wait_for_theme = 0;
+                    continue;
+                }
+                if(!strcmp(argv[i], "light")) {
+                    theme = THEME_LIGHT;
+                    parse_args_wait_for_theme = 0;
+                    continue;
+                }
+                if(!strcmp(argv[i], "highcontrast")) {
+                    theme = THEME_HIGHCONTRAST;
+                    parse_args_wait_for_theme = 0;
+                    continue;
+                }
+                debug("Please specify correct theme (please check user manual for list of correct values).");
+                return 1;
+            }
+            
+            if(!strcmp(argv[i], "--version")) {
+                debug("%s\n", VERSION);
+                return 0;
+            }
+            if(!strcmp(argv[i], "--portable")) {
+                debug("Launching uTox in portable mode: All data will be saved to the tox folder in the current working directory\n");
+                utox_portable = 1;
+            }
+            if(!strcmp(argv[i], "--theme")) {
+                parse_args_wait_for_theme = 1;
+            }
+            printf("arg %d: %s\n", i, argv[i]);
         }
+        
+    if (parse_args_wait_for_theme) {
+        debug("Expected theme name, but got nothing. -_-\n");
+        return 0;
     }
 
     XInitThreads();
@@ -925,6 +979,8 @@ int main(int argc, char *argv[])
                     PointerMotionMask | StructureNotifyMask | KeyPressMask | KeyReleaseMask | FocusChangeMask |
                     PropertyChangeMask,
     };
+    
+    theme_load(theme);
 
     /* load save data */
     UTOX_SAVE *save = config_load();
@@ -1061,6 +1117,14 @@ int main(int argc, char *argv[])
         yieldcpu(1);
     }
 
+    /* Registers the app in the Unity MM */
+    #ifdef UNITY
+    unity_running = is_unity_running();
+    if(unity_running) {
+        mm_register();
+    }
+    #endif
+
     /* set up the contact list */
     list_start();
 
@@ -1132,6 +1196,13 @@ int main(int argc, char *argv[])
 
     XDestroyWindow(display, window);
     XCloseDisplay(display);
+
+    /* Unregisters the app from the Unity MM */
+    #ifdef UNITY
+    if(unity_running) {
+        mm_unregister();
+    }
+    #endif
 
     /* wait for threads to exit */
     while(tox_thread_init) {
@@ -1339,8 +1410,6 @@ _Bool video_init(void *handle)
         if(!XShmAttach(deskdisplay, &shminfo)) {
             return 0;
         }
-
-
 
         return 1;
     }

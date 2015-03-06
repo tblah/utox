@@ -1,7 +1,8 @@
 #include "main.h"
 
-static void drawtexth(int x, int y, char_t *str, STRING_IDX length, int d, int h, int hlen, uint16_t lineheight)
-{
+static void drawtexth(int x, int y, char_t *str, STRING_IDX length, int d, int h, int hlen, uint16_t lineheight){
+
+    // Draw cursor
     h -= d;
     if(h + hlen < 0 || h > length) {
         drawtext_common(0, x, y, str, length);
@@ -9,7 +10,7 @@ static void drawtexth(int x, int y, char_t *str, STRING_IDX length, int d, int h
     } else if(hlen == 0) {
         drawtext_common(0, x, y, str, length);
         int w =  textwidth_common(0, str, h + hlen);
-        drawvline_common(0, x + w, y, y + lineheight, BLACK);
+        drawvline_common(0, x + w, y, y + lineheight, COLOR_MAIN_TEXT);
         return;
     }
 
@@ -29,10 +30,10 @@ static void drawtexth(int x, int y, char_t *str, STRING_IDX length, int d, int h
 
     width = drawtext_getwidth_common(0, x, y, str, h);
 
-    uint32_t color = setcolor_common(0, TEXT_HIGHLIGHT);
+    uint32_t color = setcolor_common(0, COLOR_SELECTION_TEXT);
 
     int w = textwidth_common(0, str + h, hlen);
-    drawrectw_common(0, x + width, y, w, lineheight, TEXT_HIGHLIGHT_BG);
+    drawrectw_common(0, x + width, y, w, lineheight, COLOR_SELECTION_BACKGROUND);
     drawtext_common(0, x + width, y, str + h, hlen);
     width += w;
 
@@ -50,12 +51,12 @@ int drawtextmultiline(int x, int right, int y, int top, int bottom, uint16_t lin
     while(1) {
         if(a != end) {
             if(*a == '>' && (a == data || *(a - 1) == '\n'))  {
-                c1 = setcolor_common(0, RGB(0, 128, 0));
+                c1 = setcolor_common(0, COLOR_MAIN_QUOTETEXT);
                 greentext = 1;
             }
 
             if((a == data || *(a - 1) == '\n' || *(a - 1) == ' ') && ((end - a >= 7 && memcmp(a, "http://", 7) == 0) || (end - a >= 8 && memcmp(a, "https://", 8) == 0))) {
-                c2 = setcolor_common(0, RGB(0, 0, 255));
+                c2 = setcolor_common(0, COLOR_MAIN_URLTEXT);
                 link = 1;
             }
         }
