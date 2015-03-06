@@ -35,7 +35,7 @@ void edit_draw_common(EDIT *edit, int target, int x, int y, int width, int heigh
     edit->height = height - 4 * SCALE;
 
     if(!edit->noborder) {
-        framerect_common(target, x, y, x + width, y + height, (edit == active_edit) ? BLUE : (edit->mouseover ? COLOR_EDGE_HOVER : COLOR_EDGE_NORMAL));
+        framerect_common(target, x, y, x + width, y + height, (edit == active_edit) ? COLOR_EDGE_ACTIVE : (edit->mouseover ? COLOR_EDGE_HOVER : COLOR_EDGE_NORMAL));
     }
     drawrect_common(target, x + 1, y + 1, x + width - 1, y + height - 1, COLOR_MAIN_BACKGROUND);
 

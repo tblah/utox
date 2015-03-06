@@ -423,6 +423,33 @@ static void button_interrupt_call_onpress(void){
     }
 }
 
+static void button_interrupt_call_updatecolor(BUTTON *b){
+    FRIEND *f = sitem->data;
+
+    switch(f->calling) {
+    case CALL_INVITED:
+        button_setcolors_warning(b);
+        break;
+    case CALL_RINGING:
+        button_setcolors_warning(b);
+        break;
+    case CALL_NONE:
+        if (f->online) {
+            button_setcolors_success(b);
+            break;
+        }
+        /* fall through */
+    case CALL_RINGING_VIDEO:
+    case CALL_INVITED_VIDEO:
+        button_setcolors_disabled(b);
+        break;
+    case CALL_OK:
+    case CALL_OK_VIDEO:
+        button_setcolors_danger(b);
+        break;
+    }
+}
+
 static void button_interrupt_video_onpress(void){
     debug("Accept Video Interrupt\n");
 
@@ -432,6 +459,32 @@ static void button_interrupt_video_onpress(void){
     }
 }
 
+static void button_interrupt_video_updatecolor(BUTTON *b){
+    FRIEND *f = sitem->data;
+
+    switch(f->calling) {
+    case CALL_INVITED:
+        button_setcolors_warning(b);
+        break;
+    case CALL_RINGING:
+        button_setcolors_warning(b);
+        break;
+    case CALL_NONE:
+        if (f->online) {
+            button_setcolors_success(b);
+            break;
+        }
+        /* fall through */
+    case CALL_RINGING_VIDEO:
+    case CALL_INVITED_VIDEO:
+        button_setcolors_disabled(b);
+        break;
+    case CALL_OK:
+    case CALL_OK_VIDEO:
+        button_setcolors_danger(b);
+        break;
+    }
+}
 
 BUTTON
 
@@ -600,22 +653,18 @@ button_status = {
 
 button_interrupt_call = {
     .bm = BM_HUGE_BUTTON,
-    .c1 = C_GREEN,
-    .c2 = C_GREEN_LIGHT,
-    .c3 = C_GREEN_LIGHT,
     .bm2 = BM_CALL,
     .bw = _BM_LARGE_BUTTON_ICON_WIDTH,
     .bh = _BM_LARGE_BUTTON_ICON_HEIGHT,
     .onpress = button_interrupt_call_onpress,
+    .updatecolor = button_interrupt_call_updatecolor,
 },
 
 button_interrupt_video = {
     .bm = BM_HUGE_BUTTON,
-    .c1 = C_GREEN,
-    .c2 = C_GREEN_LIGHT,
-    .c3 = C_GREEN_LIGHT,
     .bm2 = BM_VIDEO,
     .bw = _BM_LARGE_BUTTON_ICON_WIDTH,
     .bh = _BM_LARGE_BUTTON_ICON_HEIGHT,
     .onpress = button_interrupt_video_onpress,
+    .updatecolor = button_interrupt_video_updatecolor,
 };

@@ -34,14 +34,14 @@ void contextmenu_draw_common(int target){
 
     // Ensure that font is set before calculating position and width.
     setfont_common(target, FONT_TEXT);
-    setcolor_common(target, COLOR_TEXT);
+    setcolor_common(target, COLOR_MAIN_TEXT);
 
     int x, w, active_h;
     calculate_pos_and_width(b, &x, &w);
 
     drawrectw_common(target, x, b->y, w, b->height, COLOR_MAIN_BACKGROUND);
     active_h = b->y + b->over * CONTEXT_HEIGHT;
-    drawrectw_common(target, x, active_h, CONTEXT_HEIGHT, COLOR_ACTIVEOPTION_BACKGROUND C_GRAY);
+    drawrectw_common(target, x, active_h, w, CONTEXT_HEIGHT, COLOR_ACTIVEOPTION_BACKGROUND);
 
     int i;
     for(i = 0; i != b->count; i++) {

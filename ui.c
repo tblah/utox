@@ -331,13 +331,13 @@ static void background_draw_common(PANEL *UNUSED(p), int target, int UNUSED(x), 
 
 
 static void draw_popup(int x, int y, int w, int h){
-    setcolor_common(1, WHITE);
+    setcolor_common(1, COLOR_MAIN_BACKGROUND);
     setfont_common(1, FONT_SELF_NAME);
 
     //draw background frame
-    drawrect_common(1, 0, 50, 600, 300, LIST_DARK);
-    drawrect_common(1, 245, 0, 355, 110, LIST_DARK); // 110x110
-    drawrect_common(1, 250, 5, 350, 105, LIST_MAIN); // 100x100
+    drawrect_common(1, 0, 50, 600, 300, COLOR_LIST_BACKGROUND);
+    drawrect_common(1, 245, 0, 355, 110, COLOR_LIST_BACKGROUND); // 110x110
+    drawrect_common(1, 250, 5, 350, 105, COLOR_LIST_HOVER_BACKGROUND); // 100x100
 
 
     drawtext_common(1, 5, 65, "Incoming call", 13);
@@ -348,7 +348,7 @@ static void draw_popup(int x, int y, int w, int h){
     if (friend_has_avatar(f)) {
         draw_avatar_image_common(1, f->avatar.image, 255, 10, f->avatar.width, f->avatar.height, 90, 90);
     } else {
-        drawalpha_common(1, BM_GROUP, 20, 20, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, WHITE);
+        drawalpha_common(1, BM_GROUP, 20, 20, BM_CONTACT_WIDTH, BM_CONTACT_WIDTH, COLOR_MAIN_BACKGROUND);
     }
 
     drawtext_common(1, 365, 65, f->name, f->name_length);

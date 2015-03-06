@@ -29,10 +29,12 @@ void button_draw_common(BUTTON *b, int target, int x, int y, int width, int heig
     // Button is hidden
     if(b->nodraw) {
         return;
+    }
 
     // If `updatecolor` function is defined, call it on each draw
-    if (b->updatecolor)
+    if (b->updatecolor){
         b->updatecolor(b);
+    }
 
     // Ensure that font is set before calculating position and width.
     setfont_common(target, FONT_SELF_NAME);
@@ -47,11 +49,7 @@ void button_draw_common(BUTTON *b, int target, int x, int y, int width, int heig
     if(b->bm) {
         drawalpha_common(target, b->bm, x, y, width, height, color_background);
     } else {
-        drawrectw_common(target, x, y, w, height, b->disabled ? LIST_MAIN : color_background);
-
-        //setfont_common(0, FONT_TEXT_LARGE);
-        //setcolor_common(0, b->mouseover ? 0x222222 : 0x555555);
-        //drawtext_common(0, x + 5, y, b->text, b->text_length);
+        drawrectw_common(target, x, y, w, height, b->disabled ? b->cd : color_background);
     }
 
     if(b->bm2) {

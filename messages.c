@@ -81,8 +81,7 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
 
         // Draw the names for groups or friends
         if(m->type) {
-
-            // Group message authors are all the same colour
+            // Group message authors are all the same color
             setcolor_common(target, COLOR_MAIN_TEXT);
             setfont_common(target, FONT_TEXT);
             drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, &msg->msg[msg->length] + 1, msg->msg[msg->length]);
@@ -93,19 +92,28 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
                 // Draw author name
                 // If author is current user
                 setfont_common(target, FONT_TEXT);
-                if(!msg->author) {
-                    setcolor_common(target, COLOR_MAIN_SUBTEXT);
-                    drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
+                if(msg->msg_type == MSG_TYPE_ACTION_TEXT){
+                    setcolor_common(target, COLOR_MAIN_ACTIONTEXT);
                 } else {
-                    setcolor_common(target, COLOR_MAIN_TEXT);
-                    drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, self.name, self.name_length);
+                    if(msg->author){
+                        setcolor_common(target, COLOR_MAIN_SUBTEXT);
+                    } else {
+                        setcolor_common(target, COLOR_MAIN_TEXT);
+                    }
                 }
+
+                if(msg->author){
+                    drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, self.name, self.name_length);
+                } else {
+                    drawtextwidth_right_common(target,  x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
+                }
+
                 lastauthor = msg->author;
             } else {
-                if(!msg->author) {
-                    setcolor_common(target, 0);
+                if(msg->author) {
+                    setcolor_common(target, COLOR_MAIN_SUBTEXT);
                 } else {
-                    setcolor_common(target, CHAT_SELF);
+                    setcolor_common(target, 0);
                 }
             }
         }
@@ -142,7 +150,7 @@ void messages_draw_common(MESSAGES *m, int target, int x, int y, int width, int 
             if(msg->author) {
                 setcolor_common(target, COLOR_MAIN_SUBTEXT);
             } else {
-                setcolor_commen(target, COLOR_MAIN_TEXT);
+                setcolor_common(target, COLOR_MAIN_TEXT);
             }
             int ny = drawtextmultiline(x + MESSAGES_X, x + width - TIME_WIDTH, y, y, y + msg->height, font_small_lineheight, msg->msg, msg->length, h1, h2 - h1, 1);
             if(ny < y || (uint32_t)(ny - y) + MESSAGES_SPACING != msg->height) {

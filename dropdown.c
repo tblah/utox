@@ -15,7 +15,7 @@ void dropdown_drawactive_common(int target){
     int x = active_x, y = active_y, w = active_width, h = active_height;
 
     setfont_common(target, FONT_TEXT);
-    setcolor_common(target, COLOR_TEXT);
+    setcolor_common(target, COLOR_MAIN_TEXT);
     int i, sign = 1;
 
     // Increase width if needed, so that all menu items fit.
@@ -44,9 +44,9 @@ void dropdown_drawactive_common(int target){
         STRING* e = b->ondisplay(j, b);
         if(j == b->over) {
             drawrectw_common(target, x + 1, y + 1, w - 2, h - 2, COLOR_ACTIVEOPTION_BACKGROUND);
-            setcolor(COLOR_ACTIVEOPTION_TEXT);
+            setcolor_common(target, COLOR_ACTIVEOPTION_TEXT);
         } else {
-            setcolor(COLOR_MAIN_TEXT);
+            setcolor_common(target, COLOR_MAIN_TEXT);
         }
         setfont_common(target, FONT_TEXT);
         drawtext_common(target, x + 2 * SCALE, y + 2 * SCALE, e->str, e->length);

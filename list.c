@@ -15,10 +15,6 @@ static int sitem_dy;
 
 static void drawitembox(ITEM *i, int target, int y){
     if(sitem == i) {
-        drawpixel(LIST_X, y, LIST_EDGE6);
-        drawhline_common(target, LIST_X + 1, y, LIST_RIGHT, LIST_EDGE7);
-        drawpixel(LIST_RIGHT, y, LIST_EDGE5);
-        drawvline_common(target, LIST_X, y + 1, y + ITEM_HEIGHT, LIST_EDGE4);
         drawrect_common(target, LIST_X + 1, y + 1, LIST_RIGHT + 1, y + ITEM_HEIGHT, COLOR_MAIN_BACKGROUND);
 
         //drawrectw_common(target, LIST_X + 5 * SCALE / 2, y + 5 * SCALE / 2, 40, 40, LIST_MAIN);
