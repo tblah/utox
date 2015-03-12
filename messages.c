@@ -59,7 +59,6 @@ MSG_FILE* message_add_type_file(FILE_TRANSFER *file){
     friend_addmessage(f, msg);
     return msg;
 }
-
 /** Formats all messages from self and friends, and then call draw functions
  * to write them to the UI.
  *
@@ -94,7 +93,6 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
         if(y >= height + 50 * SCALE) {
             break;
         }
-
         // Draw timestamps
         {
             char timestr[6];
@@ -113,26 +111,25 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, &msg->msg[msg->length] + 1, msg->msg[msg->length]);
         } else {
             FRIEND *f = &friend[m->data->id];
-
             // Always draw name next to action message
             if(msg->msg_type == MSG_TYPE_ACTION_TEXT)
                 lastauthor = 0xFF;
-
             if(msg->author != lastauthor) {
                 // Draw author name
                 // If author is current user
                 setfont(FONT_TEXT);
-                if(msg->msg_type == MSG_TYPE_ACTION_TEXT)
+                if(msg->msg_type == MSG_TYPE_ACTION_TEXT){
                     setcolor(COLOR_MAIN_ACTIONTEXT);
-                else
-                    if(msg->author)
+                    drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, " * ", 3);
+                } else {
+                    if(msg->author){
                         setcolor(COLOR_MAIN_SUBTEXT);
-                    else
+                        drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, self.name, self.name_length);
+                    } else {
                         setcolor(COLOR_MAIN_CHATTEXT);
-                if(msg->author)
-                    drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, self.name, self.name_length);
-                else
-                    drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
+                        drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, f->name, f->name_length);
+                    }
+                }
                 lastauthor = msg->author;
             }
         }
@@ -141,6 +138,7 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
         switch(msg->msg_type) {
         case MSG_TYPE_TEXT:
         case MSG_TYPE_ACTION_TEXT: {
+            FRIEND *f = &friend[m->data->id];
             // Normal message
             STRING_IDX h1 = STRING_IDX_MAX, h2 = STRING_IDX_MAX;
             if(i == m->data->istart) {
@@ -164,11 +162,11 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             } else {
                 setcolor(COLOR_MAIN_CHATTEXT);
             }
-
+            
             if (msg->msg_type == MSG_TYPE_ACTION_TEXT) {
                 setcolor(COLOR_MAIN_ACTIONTEXT);
             }
-
+            
             setfont(FONT_TEXT);
             int ny = drawtextmultiline(x + MESSAGES_X, x + width - TIME_WIDTH, y, y, y + msg->height, font_small_lineheight, msg->msg, msg->length, h1, h2 - h1, 1);
             if(ny < y || (uint32_t)(ny - y) + MESSAGES_SPACING != msg->height) {
@@ -315,7 +313,6 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             uint32_t w = (file->size == 0) ? 0 : (progress * (uint64_t)106 * SCALE) / file->size;
 
             drawrectw((x + dx) + 5 * SCALE, y + 17 * SCALE, w, 7 * SCALE, COLOR_BUTTON_INPROGRESS_TEXT);
-
 
             drawtext(x + dx + 5 * SCALE, y + 10 * SCALE, size, sizelen);
             drawtextwidth(x + dx + 5 * SCALE, 106 * SCALE, y + 3 * SCALE, file->name, file->name_length);
