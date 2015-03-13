@@ -93,6 +93,7 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
         if(y >= height + 50 * SCALE) {
             break;
         }
+
         // Draw timestamps
         {
             char timestr[6];
@@ -111,9 +112,11 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             drawtextwidth_right(x, MESSAGES_X - NAME_OFFSET, y, &msg->msg[msg->length] + 1, msg->msg[msg->length]);
         } else {
             FRIEND *f = &friend[m->data->id];
+
             // Always draw name next to action message
             if(msg->msg_type == MSG_TYPE_ACTION_TEXT)
                 lastauthor = 0xFF;
+
             if(msg->author != lastauthor) {
                 // Draw author name
                 // If author is current user
@@ -162,6 +165,7 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             } else {
                 setcolor(COLOR_MAIN_CHATTEXT);
             }
+
             
             if (msg->msg_type == MSG_TYPE_ACTION_TEXT) {
                 setcolor(COLOR_MAIN_ACTIONTEXT);
@@ -169,6 +173,7 @@ void messages_draw(MESSAGES *m, int x, int y, int width, int height)
             
             setfont(FONT_TEXT);
             int ny = drawtextmultiline(x + MESSAGES_X, x + width - TIME_WIDTH, y, y, y + msg->height, font_small_lineheight, msg->msg, msg->length, h1, h2 - h1, 1);
+
             if(ny < y || (uint32_t)(ny - y) + MESSAGES_SPACING != msg->height) {
                 debug("error101 %u %u\n", ny -y, msg->height - MESSAGES_SPACING);
             }
