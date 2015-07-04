@@ -275,8 +275,7 @@ static void do_bootstrap(Tox *tox)
     }
 }
 
-static void set_callbacks(Tox *tox)
-{
+static void set_callbacks(Tox *tox){
     tox_callback_friend_request(tox, callback_friend_request, NULL);
     tox_callback_friend_message(tox, callback_friend_message, NULL);
     tox_callback_friend_name(tox, callback_name_change, NULL);
@@ -286,11 +285,71 @@ static void set_callbacks(Tox *tox)
     tox_callback_friend_read_receipt(tox, callback_read_receipt, NULL);
     tox_callback_friend_connection_status(tox, callback_connection_status, NULL);
 
+
+    // Group chats
+    // new api progress
+    // completed!
+
+    // In progress
     tox_callback_group_invite(tox, callback_group_invite, NULL);
     tox_callback_group_message(tox, callback_group_message, NULL);
     tox_callback_group_action(tox, callback_group_action, NULL);
-    tox_callback_group_namelist_change(tox, callback_group_namelist_change, NULL);
-    tox_callback_group_title(tox, callback_group_title, NULL);
+    tox_callback_group_peerlist_update(tox, callback_group_peerlist_update, NULL); // replace?
+    tox_callback_group_topic_change(tox, callback_group_topic_update, NULL);
+
+    // Unstarted
+
+    // todo
+        /* Set the callback for group private messages.
+         *
+         *  function(Tox *m, int groupnumber, uint32_t peernumber, const uint8_t *message, uint16_t length, void *userdata)
+         */
+        tox_callback_group_private_message(Tox *tox, void (*function)(Tox *m, int, uint32_t, const uint8_t *, uint16_t, void *), void *userdata);
+
+        /* Set the callback for group moderation events.
+         *
+         *  function(Tox *m, int groupnumber, uint32_t source_peernum, uint32_t target_peernum, TOX_GROUP_MOD_EVENT type, void *userdata)
+         */
+        tox_callback_group_moderation(Tox *tox, void (*function)(Tox *m, int, uint32_t, uint32_t, TOX_GROUP_MOD_EVENT, void *), void *userdata);
+
+        /* Set the callback for group peer nickname changes.
+         *
+         * function(Tox *m, int groupnumber, uint32_t peernumber, const uint8_t *newnick, uint16_t length, void *userdata)
+         */
+        tox_callback_group_nick_change(Tox *tox, void (*function)(Tox *m, int, uint32_t, const uint8_t *, uint16_t, void *), void *userdata);
+
+        /* Set the callback for group peer status changes.
+         *
+         * function(Tox *m, int groupnumber, uint32_t peernumber, uint8_t status, void *userdata)
+         */
+        tox_callback_group_status_change(Tox *tox, void (*function)(Tox *m, int, uint32_t, uint8_t, void *), void *userdata);
+
+        /* Set the callback for group peer join alert. This callback must not be
+         * relied on for updating the client's peer list (use tox_callback_group_peerlist_update).
+         *
+         * function(Tox *m, int groupnumber, uint32_t peernumber, void *userdata)
+         */
+        tox_callback_group_peer_join(Tox *tox, void (*function)(Tox *m, int, uint32_t, void *), void *userdata);
+
+        /* Set the callback for group peer exit alert. This callback must not be
+         * relied on for updating the client's peer list (use tox_callback_group_peerlist_update).
+         *
+         * function(Tox *m, int groupnumber, uint32_t peernumber, const uint8_t *partmessage, uint16_t length, void *userdata)
+         */
+        tox_callback_group_peer_exit(Tox *tox, void (*function)(Tox *m, int, uint32_t, const uint8_t *, uint16_t, void *), void *userdata);
+
+        /* Set the callback for group self join.
+         *
+         * function(Tox *m, int groupnumber, void *userdata)
+         */
+        tox_callback_group_self_join(Tox *tox, void (*function)(Tox *m, int, void *), void *userdata);
+
+        /* Set the callback for when your join attempt is rejected where type is one of TOX_GROUP_JOIN_REJECTED.
+         *
+         * function(Tox *m, int groupnumber, uint8_t type, void *userdata)
+         */
+        tox_callback_group_rejected(Tox *tox, void (*function)(Tox *m, int, uint8_t, void *), void *userdata);
+
 
     utox_set_callbacks_for_transfer(tox);
 }
@@ -323,8 +382,7 @@ static _Bool init_avatar(AVATAR *avatar, const char_t *id, uint8_t *png_data_out
     }
     return 0;
 }
-
-static size_t load_save(uint8_t **out_data){
+ static size_t load_save(uint8_t **out_data){
     uint8_t path[UTOX_FILE_NAME_LENGTH], *p, *data;
     uint32_t size;
 
